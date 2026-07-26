@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Notebook artifacts
+.ipynb_checkpoints/
+
+# Build and packaging
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local editor / OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Project outputs and generated artifacts
+outputs/
+

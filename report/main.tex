@@ -1,0 +1,328 @@
+\documentclass[12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{siunitx}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[margin=1in]{geometry}
+
+\title{Laboratorio 1: Metodolog\'ia, EDA y construcci\'on de series}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Introducción}
+
+El laboratorio tuvo como propósito construir una base reproducible para describir y preparar el modelado del ingreso mensual de viajeros a Guatemala mediante técnicas de series de tiempo. El interés analítico estuvo en resumir la evolución temporal del flujo de viajeros, identificar cambios estructurales relevantes y dejar una partición cronológica que permitiera desarrollar la etapa posterior de pronóstico sin mezclar información futura con el conjunto de entrenamiento.
+
+El estudio cubrió el período comprendido entre enero de 2009 y junio de 2026, de acuerdo con la tabla de resumen del conjunto procesado (Tabla~\ref{tab:resumen-dataset}). A partir de ese período se analizaron siete series mensuales: el total comparable de viajeros, las tres fronteras con mayor volumen acumulado y las tres vías de ingreso disponibles en el archivo refactorizado. Esta selección permitió combinar una visión agregada del fenómeno con aperturas operativas suficientemente representativas para la etapa de diagnóstico inicial.
+
+\section{Descripción del conjunto de datos}
+
+El insumo utilizado fue el archivo académico \texttt{Base\_Migracion\_2009-2026jun.xlsx}, hoja \texttt{Datos}, provisto como base del laboratorio. Después de construir la variable de fecha mensual, la tabla de trabajo quedó compuesta por 161{,}036 filas y 14 columnas, con cobertura desde 2009-01-01 hasta 2026-06-01, como se resume en la Tabla~\ref{tab:resumen-dataset}. Las variables principales fueron \texttt{Año}, \texttt{Mes cod}, \texttt{Mes}, \texttt{Vía}, \texttt{Frontera}, \texttt{País}, \texttt{Región}, \texttt{Región dos}, \texttt{Tipo de Viajero} y \texttt{Viajero}.
+
+\begin{table}[H]
+    \centering
+    \caption{Resumen del conjunto de datos procesado.}
+    \label{tab:resumen-dataset}
+    \begin{tabular}{ll}
+        \toprule
+        Indicador & Valor \\
+        \midrule
+        Numero de filas & 161.036 \\
+        Numero de columnas & 14 \\
+        Inicio del periodo & 2009-01-01 \\
+        Fin del periodo & 2026-06-01 \\
+        Anio inicial & 2009 \\
+        Anio final & 2026 \\
+        Meses distintos & 12 \\
+        Valor minimo de Viajero & 0.00 \\
+        Valor maximo de Viajero & 92336.04 \\
+        Registros negativos en Viajero & 0 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+La variable \texttt{Viajero} se interpretó como una cantidad agregada observada para cada combinación de dimensiones, no como un registro individual. Por esa razón, todas las agregaciones temporales y categóricas se realizaron mediante suma. Esta decisión fue central para construir el total mensual y para asegurar que las comparaciones entre fronteras, vías y períodos conservaran la escala original del fenómeno observado.
+
+El conjunto presentó además dos advertencias conceptuales. En primer lugar, la variable \texttt{País} perdió comparabilidad estricta después de 2023, porque parte de sus valores pudo responder a agrupaciones de mercado y no a países individuales homogéneos. En segundo lugar, la composición de \texttt{Tipo de Viajero} mostró un quiebre operativo entre 2022 y 2023: en 2022 coexistieron \texttt{Turista}, \texttt{Excursionista}, \texttt{Cruceristas} y \texttt{Viajero}, mientras que en 2023 ya no apareció \texttt{Cruceristas} y se mantuvo \texttt{Viajero}. Esa inestabilidad reforzó la decisión metodológica de construir el total comparable únicamente con \texttt{Turista} y \texttt{Excursionista}, que fueron las categorías presentes de forma consistente a lo largo del horizonte de estudio.
+
+\section{Preparación de los datos}
+
+\subsection{Limpieza y validación}
+
+La preparación comenzó con la creación de una variable \texttt{fecha} con formato \texttt{YYYY-MM-01}, de modo que cada observación mensual quedara alineada con el inicio del mes. Posteriormente se verificó la consistencia temporal del índice y se reexpresaron las series construidas con frecuencia mensual \texttt{MS}. Esta decisión permitió trabajar con una convención uniforme en el análisis exploratorio, la división entrenamiento/prueba y el diagnóstico de estacionariedad.
+
+La revisión de calidad no detectó valores faltantes en las columnas originales del conjunto procesado, tampoco detectó valores negativos en \texttt{Viajero} y no encontró duplicados completos. Sí se identificaron 20 posibles duplicados por combinación de dimensiones, por lo que estos casos quedaron marcados para revisión sustantiva en lugar de eliminarse automáticamente. La Tabla~\ref{tab:calidad-datos} resume los principales hallazgos de esta fase.
+
+\begin{table}[H]
+    \centering
+    \caption{Indicadores de calidad de datos derivados del pipeline refactorizado.}
+    \label{tab:calidad-datos}
+    \begin{tabular}{ll}
+        \toprule
+        Revision & Resultado \\
+        \midrule
+        Columnas con faltantes & 0 \\
+        Maximo porcentaje de faltantes & 0.0000 \\
+        Duplicados completos & 0 \\
+        Posibles duplicados dimensionales & 20 \\
+        Outliers globales IQR & 26390 \\
+        Valores negativos en Viajero & 0 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+El análisis de valores atípicos mediante rango intercuartílico identificó 26{,}390 observaciones extremas a escala global. Sin embargo, estos registros no se trataron como errores por defecto. En un conjunto de movilidad internacional, una parte importante de los extremos pudo corresponder a estacionalidad alta, cierre de fronteras, reaperturas graduales o cambios reales de demanda. Por esa razón, los outliers se documentaron como señales de diagnóstico y no como observaciones a depurar de manera automática.
+
+\subsection{Definición del total de viajeros}
+
+El total mensual comparable se construyó exclusivamente con las categorías \texttt{Turista} y \texttt{Excursionista}. Esta decisión no respondió a una preferencia arbitraria, sino a un criterio de consistencia temporal. Las categorías \texttt{Viajero} y \texttt{Cruceristas} no mantuvieron una definición estable en todo el período y, además, cambiaron de presencia relativa entre 2022 y 2023. En consecuencia, incluirlas en el total habría introducido una discontinuidad conceptual que habría contaminado la comparación longitudinal y el diagnóstico estadístico posterior.
+
+\subsection{División de entrenamiento y prueba}
+
+La partición del conjunto se hizo de manera cronológica con una proporción aproximada de 70\,\% para entrenamiento y 30\,\% para prueba. En la serie total, esta regla produjo 147 meses para entrenamiento y 63 meses para prueba, con fecha de corte en marzo de 2021 e inicio del conjunto de prueba en abril de 2021, como se resume en la Tabla~\ref{tab:resumen-series}. No se utilizó una división aleatoria porque ello habría destruido la dependencia temporal y habría expuesto el entrenamiento a información futura.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.92\textwidth]{../outputs/parte1/figuras/serie_total_mensual_split.png}
+    \caption{Serie mensual total y división cronológica entre entrenamiento y prueba.}
+    \label{fig:serie-total-split}
+\end{figure}
+
+La Figura~\ref{fig:serie-total-split} mostró que el corte ocurrió después del choque más severo asociado con la pandemia, lo que permitió que el conjunto de prueba retuviera una etapa de recuperación parcial y, por tanto, un escenario más exigente para la evaluación posterior. El conjunto de entrenamiento se reservó para el análisis exploratorio profundo, la evaluación de transformaciones y el diagnóstico de estacionariedad, mientras que el conjunto de prueba quedó separado para la etapa de comparación de modelos.
+
+\section{Análisis exploratorio}
+
+\subsection{Comportamiento temporal}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.92\textwidth]{../outputs/parte1/figuras/eda_total_mensual.png}
+    \caption{Comportamiento temporal del volumen mensual filtrado de viajeros.}
+    \label{fig:eda-total}
+\end{figure}
+
+La Figura~\ref{fig:eda-total} mostró una trayectoria con oscilaciones estacionales visibles antes de 2020, seguida por una contracción abrupta durante la pandemia y una recuperación posterior incompleta. A partir de la serie total exportada se observó que el volumen agregado de 2020 cayó aproximadamente 74.4\,\% respecto de 2019, y que en 2023 todavía se ubicó cerca de 29.4\,\% por debajo del nivel anual de 2019. El máximo mensual del período ocurrió en diciembre de 2019, mientras que el mínimo se registró en mayo de 2020, lo que confirmó la presencia de una ruptura exógena intensa en la dinámica del sistema.
+
+\subsection{Países y regiones}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../outputs/parte1/figuras/eda_top_paises.png}
+        \caption{Países con mayor volumen acumulado.}
+        \label{fig:eda-paises}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../outputs/parte1/figuras/eda_top_regiones.png}
+        \caption{Regiones con mayor volumen acumulado.}
+        \label{fig:eda-regiones}
+    \end{subfigure}
+    \caption{Distribución acumulada por país y región.}
+    \label{fig:eda-paises-regiones}
+\end{figure}
+
+La Figura~\ref{fig:eda-paises-regiones} indicó un claro predominio regional de Centroamérica y Norteamérica. Entre los países, El Salvador y Guatemala concentraron los mayores volúmenes acumulados, ambos por encima de 13 millones de viajeros, seguidos por Estados Unidos. A nivel regional, América del Centro dominó ampliamente el conjunto con más de 33 millones de viajeros acumulados, muy por encima de América del Norte. Este patrón fue coherente con una estructura de movilidad fuertemente apoyada en proximidad geográfica y conectividad terrestre. No obstante, la advertencia sobre la comparabilidad de \texttt{País} después de 2023 obligó a interpretar estas jerarquías con cautela en la cola final del período.
+
+\subsection{Vías y fronteras}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../outputs/parte1/figuras/eda_vias.png}
+        \caption{Vías de ingreso.}
+        \label{fig:eda-vias}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../outputs/parte1/figuras/eda_top_fronteras.png}
+        \caption{Fronteras con mayor volumen acumulado.}
+        \label{fig:eda-fronteras}
+    \end{subfigure}
+    \caption{Jerarquía acumulada por vía y frontera.}
+    \label{fig:eda-vias-fronteras}
+\end{figure}
+
+La Figura~\ref{fig:eda-vias-fronteras} mostró que la vía terrestre fue la principal puerta de entrada en términos agregados, seguida por la vía aérea, mientras que la vía marítima mantuvo una escala mucho menor. En cuanto a fronteras, La Aurora concentró el mayor volumen, seguida por Valle Nuevo y San Cristóbal. Esta concentración justificó que el análisis de series por frontera se enfocara en esas tres unidades, cuyos acumulados se resumen en la Tabla~\ref{tab:top3-fronteras}.
+
+\begin{table}[H]
+    \centering
+    \caption{Tres fronteras con mayor volumen acumulado en todo el período filtrado.}
+    \label{tab:top3-fronteras}
+    \begin{tabular}{lr}
+        \toprule
+        Frontera & Viajeros acumulados \\
+        \midrule
+        01 La Aurora & 18.989.985 \\
+        07 Valle Nuevo & 10.143.045 \\
+        09 San Cristóbal & 4.183.632 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Los cruces exploratorios entre vía y frontera, así como entre región y vía, mostraron además que el peso de las entradas terrestres estuvo asociado a fronteras específicas de alta intensidad, mientras que la vía aérea se concentró de manera natural en La Aurora. Esta especialización operativa fue relevante porque anticipó diferencias en volatilidad, amplitud estacional y sensibilidad a cierres o restricciones por punto de ingreso.
+
+\subsection{Calidad de los datos}
+
+La evidencia de calidad respaldó el uso del conjunto sin una depuración agresiva. La ausencia de faltantes en las columnas base y de valores negativos evitó correcciones mecánicas adicionales. En contraste, la presencia de posibles duplicados dimensionales y de un volumen considerable de outliers sugirió una lectura más cuidadosa: estos casos pudieron reflejar desagregaciones administrativas, recategorizaciones o episodios excepcionales de movilidad. Por ello, el criterio metodológico consistió en documentarlos y mantenerlos en el conjunto analítico mientras no existiera evidencia directa de error de captura.
+
+\section{Construcción y diagnóstico de las series}
+
+\begin{table}[H]
+    \centering
+    \scriptsize
+    \caption{Resumen de las siete series construidas.}
+    \label{tab:resumen-series}
+    \begin{tabular}{lllllll}
+        \toprule
+        Serie & Inicio & Fin & Frecuencia & Obs. & Fin train & Inicio test \\
+        \midrule
+        Total mensual & 2009-01-01 & 2026-06-01 & MS & 210 & 2021-03-01 & 2021-04-01 \\
+        Frontera 01 La Aurora & 2009-01-01 & 2026-06-01 & MS & 210 & 2021-03-01 & 2021-04-01 \\
+        Frontera 07 Valle Nuevo & 2009-01-01 & 2026-06-01 & MS & 210 & 2021-03-01 & 2021-04-01 \\
+        Frontera 09 San Cristóbal & 2009-01-01 & 2026-06-01 & MS & 210 & 2021-03-01 & 2021-04-01 \\
+        Vía Aérea & 2009-01-01 & 2026-06-01 & MS & 210 & 2021-03-01 & 2021-04-01 \\
+        Vía Terrestre & 2009-01-01 & 2026-06-01 & MS & 210 & 2021-03-01 & 2021-04-01 \\
+        Vía Marítima & 2009-01-01 & 2026-06-01 & MS & 210 & 2021-03-01 & 2021-04-01 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Las siete series se construyeron mediante agregación mensual por suma. El ranking de fronteras se calculó con el acumulado de todo el período ya filtrado por \texttt{Turista} y \texttt{Excursionista}, y luego se generó una serie mensual para cada una de las tres fronteras líderes. Para las vías de ingreso se construyeron series separadas para Aérea, Terrestre y Marítima. La Tabla~\ref{tab:resumen-series} mostró que todas las series compartieron el mismo rango temporal y la misma fecha de corte, lo cual garantizó comparabilidad directa entre diagnósticos. La única diferencia estructural importante apareció en la vía marítima, que conservó meses sin observación y, por tanto, no fue rellenada con ceros para evitar introducir supuestos no justificados sobre ausencia real de viajeros.
+
+\subsection{Serie total}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.92\textwidth]{../outputs/parte1/figuras/descomposicion_total_mensual_aditiva.png}
+    \caption{Descomposición aditiva de la serie total mensual en entrenamiento.}
+    \label{fig:descomposicion-total}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../outputs/parte1/figuras/acf_total_mensual_nivel.png}
+        \caption{ACF en niveles.}
+        \label{fig:acf-total}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../outputs/parte1/figuras/pacf_total_mensual_nivel.png}
+        \caption{PACF en niveles.}
+        \label{fig:pacf-total}
+    \end{subfigure}
+    \caption{Diagnóstico de autocorrelación para la serie total en entrenamiento.}
+    \label{fig:acf-pacf-total}
+\end{figure}
+
+La serie total presentó una combinación de tendencia de mediano plazo, patrón estacional y un quiebre pronunciado durante 2020, lo cual quedó reforzado por la descomposición aditiva de la Figura~\ref{fig:descomposicion-total}. A nivel visual, la amplitud estacional no sugirió un crecimiento de varianza lo suficientemente fuerte como para exigir una transformación inmediata; por eso el pipeline recomendó mantener la serie sin transformación. En el contraste de Dickey-Fuller aumentado sobre niveles se obtuvo un estadístico de $-2.364$ con $p=0.1520$, por lo que la evidencia no fue suficiente para tratar la serie de entrenamiento como estacionaria en media. Después de aplicar una primera diferencia, el estadístico pasó a $-2.987$ con $p=0.0361$, lo que aportó evidencia compatible con estacionariedad tras una diferenciación regular. En consecuencia, para la etapa de modelado posterior se sugirió $d=1$ y $D=0$.
+
+La Figura~\ref{fig:acf-pacf-total} apoyó esta lectura. Las autocorrelaciones en niveles persistieron en varios rezagos, señal característica de una serie no estacionaria en media, mientras que la necesidad de una diferencia estacional no apareció como recomendación principal en el resumen automatizado. Este resultado fue consistente con el fuerte componente de choque exógeno por pandemia: parte de la persistencia temporal pudo provenir de la ruptura estructural y no exclusivamente de una tendencia suave de largo plazo.
+
+\subsection{Series por frontera}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../outputs/parte1/figuras/serie_frontera_01_la_aurora_completa.png}
+        \caption{La Aurora.}
+        \label{fig:frontera-aurora}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../outputs/parte1/figuras/serie_frontera_07_valle_nuevo_completa.png}
+        \caption{Valle Nuevo.}
+        \label{fig:frontera-valle}
+    \end{subfigure}
+    
+    \vspace{0.5cm}
+    
+    \begin{subfigure}[b]{0.60\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../outputs/parte1/figuras/serie_frontera_09_san_cristobal_completa.png}
+        \caption{San Cristóbal.}
+        \label{fig:frontera-sancristobal}
+    \end{subfigure}
+    \caption{Series mensuales de las tres fronteras con mayor volumen acumulado.}
+    \label{fig:series-fronteras}
+\end{figure}
+
+La Figura~\ref{fig:series-fronteras} mostró comportamientos heterogéneos entre fronteras. La Aurora y Valle Nuevo conservaron volúmenes medios más altos y una estacionalidad visible antes del quiebre pandémico, mientras que San Cristóbal operó con menor nivel y mayor sensibilidad relativa a cambios abruptos. En los tres casos, el test ADF sobre niveles no aportó evidencia suficiente de estacionariedad y la primera diferencia sí la aportó, por lo que el pipeline sugirió $d=1$ y $D=0$ en las tres fronteras. La principal diferencia apareció en la transformación recomendada: San Cristóbal recibió una sugerencia de transformación tipo Box-Cox aproximada, mientras que La Aurora y Valle Nuevo conservaron la opción de trabajar sin transformación.
+
+\subsection{Series por vía de ingreso}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../outputs/parte1/figuras/serie_via_aerea_completa.png}
+        \caption{Vía aérea.}
+        \label{fig:via-aerea}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../outputs/parte1/figuras/serie_via_terrestre_completa.png}
+        \caption{Vía terrestre.}
+        \label{fig:via-terrestre}
+    \end{subfigure}
+    
+    \vspace{0.5cm}
+    
+    \begin{subfigure}[b]{0.60\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../outputs/parte1/figuras/serie_via_maritima_completa.png}
+        \caption{Vía marítima.}
+        \label{fig:via-maritima}
+    \end{subfigure}
+    \caption{Series mensuales por vía de ingreso.}
+    \label{fig:series-vias}
+\end{figure}
+
+La Figura~\ref{fig:series-vias} permitió distinguir tres escalas operativas. La vía terrestre fue la más voluminosa y también la más expuesta al colapso de 2020; la vía aérea mostró un comportamiento muy cercano al de La Aurora, como cabía esperar por la concentración del tráfico aéreo; y la vía marítima tuvo un nivel mucho menor, con meses faltantes retenidos como ausencia de observación. En términos de media, las tres series requirieron una primera diferencia para obtener evidencia favorable de estacionariedad. En términos de varianza, Aérea y Terrestre mantuvieron la sugerencia de no transformar, mientras que Marítima recibió una recomendación de transformación Box-Cox aproximada debido a una relación más inestable entre nivel y variabilidad.
+
+\begin{table}[H]
+    \centering
+    \scriptsize
+    \caption{Resumen comparativo del diagnóstico inicial de estacionariedad.}
+    \label{tab:estacionariedad}
+    \begin{tabular}{llrrrrrr}
+        \toprule
+        Serie & Transformacion & ADF nivel & p-valor nivel & ADF diff1 & p-valor diff1 & d & D \\
+        \midrule
+        Total mensual & sin\_transformacion & -2.364 & 0.1520 & -2.987 & 0.0361 & 1 & 0 \\
+        Frontera 01 La Aurora & sin\_transformacion & -2.370 & 0.1505 & -4.075 & 0.0011 & 1 & 0 \\
+        Frontera 07 Valle Nuevo & sin\_transformacion & -1.832 & 0.3648 & -3.536 & 0.0071 & 1 & 0 \\
+        Frontera 09 San Cristóbal & boxcox\_aproximada & -1.393 & 0.5854 & -4.076 & 0.0011 & 1 & 0 \\
+        Vía Aérea & sin\_transformacion & -2.367 & 0.1512 & -4.071 & 0.0011 & 1 & 0 \\
+        Vía Terrestre & sin\_transformacion & -2.117 & 0.2377 & -3.326 & 0.0137 & 1 & 0 \\
+        Vía Marítima & boxcox\_aproximada & 0.724 & 0.9903 & -8.731 & 0.0000 & 1 & 0 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+La Tabla~\ref{tab:estacionariedad} condensó el diagnóstico inicial para las siete series. En todos los casos el valor sugerido para la diferenciación regular fue $d=1$, mientras que no se recomendó una diferencia estacional adicional ($D=0$) como primera opción. Este resultado no implicó que la estacionalidad desapareciera, sino que la evidencia del ADF y del flujo automatizado fue suficiente para priorizar una diferencia no estacional en la fase siguiente. En conjunto, la primera parte del trabajo dejó series coherentes, una partición cronológica estable y una base estadística suficiente para iniciar la comparación de modelos en la Parte 2 del laboratorio.
+
+\end{document}
