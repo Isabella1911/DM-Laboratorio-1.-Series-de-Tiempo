@@ -1,20 +1,21 @@
 \begin{table}[H]
 \centering
 \scriptsize
-\caption{Mejor modelo seleccionado para cada serie.}
+\caption{Mejor modelo seleccionado para cada serie (justificacion en el texto).}
 \label{tab:mejores-modelos}
-\begin{tabular}{lllrrrrl}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llrrrr}
 \toprule
-serie & modelo\_seleccionado & configuracion & MAE & RMSE & AIC & BIC & justificacion \\
+serie & modelo\_seleccionado & MAE & RMSE & AIC & BIC \\
 \midrule
-Total mensual & HoltWinters(trend=add,seasonal=mul,damped=False) & orden= estacional= & 134374.79 & 146605.58 & 3081.15 & 3129.00 & Menor RMSE en prueba (146605.58) entre modelos convergentes con residuos sin autocorrelacion significativa; MAE=134374.79. \\
-Frontera 01 La Aurora & ARIMA(1, 1, 1)x(0, 0, 1, 12) & orden=(1, 1, 1) estacional=(0, 0, 1, 12) & 22967.05 & 27986.19 & 2930.62 & 2942.15 & Menor RMSE en prueba (27986.19) entre modelos convergentes con residuos sin autocorrelacion significativa; MAE=22967.05. \\
-Frontera 07 Valle Nuevo & HoltWinters(trend=add,seasonal=add,damped=True) & orden= estacional= & 35211.09 & 38092.01 & 2780.24 & 2831.07 & Menor RMSE en prueba (38092.01) entre modelos convergentes con residuos sin autocorrelacion significativa; MAE=35211.09. \\
-Frontera 09 San Cristóbal & ARIMA(1, 1, 1)x(1, 0, 1, 12) & orden=(1, 1, 1) estacional=(1, 0, 1, 12) & 5065.26 & 6830.96 & 1564.38 & 1578.79 & Menor RMSE en prueba (6830.96) entre modelos convergentes con residuos sin autocorrelacion significativa; MAE=5065.26. \\
-Vía Aérea & ARIMA(1, 1, 1)x(0, 0, 1, 12) & orden=(1, 1, 1) estacional=(0, 0, 1, 12) & 22914.63 & 27998.65 & 2930.95 & 2942.48 & Menor RMSE en prueba (27998.65) entre modelos convergentes con residuos sin autocorrelacion significativa; MAE=22914.63. \\
-Vía Terrestre & HoltWinters(trend=add,seasonal=mul,damped=False) & orden= estacional= & 107808.72 & 118717.14 & 3001.02 & 3048.86 & Menor RMSE en prueba (118717.14) entre modelos convergentes con residuos sin autocorrelacion significativa; MAE=107808.72. \\
-Vía Marítima & ARIMA(0, 1, 1)x(1, 0, 1, 12) & orden=(0, 1, 1) estacional=(1, 0, 1, 12) & -- & -- & 522.91 & 532.49 & Sin observaciones validas en el conjunto de prueba para esta serie; se selecciono por menor AIC en entrenamiento (522.91). \\
+Total mensual & HW(mul,amort=False) & 134374.79 & 146605.58 & 3081.15 & 3129.00 \\
+Frontera 01 La Aurora & ARIMA(1, 1, 1)x(0, 0, 1, 12) & 22967.05 & 27986.19 & 2930.62 & 2942.15 \\
+Frontera 07 Valle Nuevo & HW(add,amort=True) & 35211.09 & 38092.01 & 2780.24 & 2831.07 \\
+Frontera 09 San Cristóbal & ARIMA(1, 1, 1)x(1, 0, 1, 12) & 5065.26 & 6830.96 & 1564.38 & 1578.79 \\
+Vía Aérea & ARIMA(1, 1, 1)x(0, 0, 1, 12) & 22914.63 & 27998.65 & 2930.95 & 2942.48 \\
+Vía Terrestre & HW(mul,amort=False) & 107808.72 & 118717.14 & 3001.02 & 3048.86 \\
+Vía Marítima & ARIMA(0, 1, 1)x(1, 0, 1, 12) & -- & -- & 522.91 & 532.49 \\
 \bottomrule
 \end{tabular}
-
+}
 \end{table}

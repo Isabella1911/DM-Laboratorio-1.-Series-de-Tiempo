@@ -1,16 +1,17 @@
 \begin{table}[H]
 \centering
 \scriptsize
-\caption{Comparacion estadistica entre las tres fronteras principales.}
+\caption{Comparacion estadistica entre las tres fronteras principales (MAE/RMSE del mejor modelo en la Tabla~\ref{tab:mejores-modelos}).}
 \label{tab:comparacion-fronteras}
-\begin{tabular}{lrrrrllrr}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrll}
 \toprule
-serie & fuerza\_estacionalidad & pendiente\_tendencia & coeficiente\_variacion & caida\_porcentual & meses\_recuperacion & mejor\_modelo & MAE & RMSE \\
+serie & fuerza\_estacionalidad & pendiente\_tendencia & coeficiente\_variacion & caida\_porcentual & meses\_recuperacion & mejor\_modelo \\
 \midrule
-Frontera 01 La Aurora & 0.57 & 50.27 & 0.31 & -99.61 & 27 & ARIMA(1, 1, 1)x(0, 0, 1, 12) & 22967.05 & 27986.19 \\
-Frontera 07 Valle Nuevo & 0.36 & 58.54 & 0.49 & -99.90 & 24 & HoltWinters(trend=add,seasonal=add,damped=True) & 35211.09 & 38092.01 \\
-Frontera 09 San Cristóbal & 0.31 & 65.03 & 0.57 & -99.96 & 18 & ARIMA(1, 1, 1)x(1, 0, 1, 12) & 5065.26 & 6830.96 \\
+Frontera 01 La Aurora & 0.57 & 50.27 & 0.31 & -99.61 & 27 & ARIMA(1, 1, 1)x(0, 0, 1, 12) \\
+Frontera 07 Valle Nuevo & 0.36 & 58.54 & 0.49 & -99.90 & 24 & HW(add,amort=True) \\
+Frontera 09 San Cristóbal & 0.31 & 65.03 & 0.57 & -99.96 & 18 & ARIMA(1, 1, 1)x(1, 0, 1, 12) \\
 \bottomrule
 \end{tabular}
-
+}
 \end{table}

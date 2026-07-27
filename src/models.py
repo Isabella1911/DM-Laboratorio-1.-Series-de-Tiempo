@@ -712,7 +712,8 @@ def _dataframe_a_latex(df: pd.DataFrame, path: Path, caption: str, label: str) -
     contenido = (
         "\\begin{table}[H]\n\\centering\n\\scriptsize\n"
         f"\\caption{{{caption}}}\n\\label{{{label}}}\n"
-        f"{cuerpo}\n\\end{{table}}\n"
+        f"\\resizebox{{\\textwidth}}{{!}}{{%\n{cuerpo}}}\n"
+        f"\\end{{table}}\n"
     )
     path.write_text(contenido, encoding="utf-8")
 

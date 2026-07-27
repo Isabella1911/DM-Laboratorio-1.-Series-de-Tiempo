@@ -441,12 +441,22 @@ def construir_hallazgos(comparacion: pd.DataFrame, mejores_modelos: pd.DataFrame
 # ---------------------------------------------------------------------------
 
 
+def _acortar_nombre_modelo(nombre: str) -> str:
+    """Etiqueta compacta solo para tablas LaTeX; la Tabla 9/CSV conservan el nombre completo."""
+    if not isinstance(nombre, str):
+        return nombre
+    nombre = nombre.replace("HoltWinters(trend=add,seasonal=", "HW(").replace(",damped=", ",amort=")
+    nombre = nombre.replace("SuavizamientoExponencial(", "SuavExp(")
+    return nombre
+
+
 def _dataframe_a_latex(df: pd.DataFrame, path: Path, caption: str, label: str) -> None:
     cuerpo = df.round(2).to_latex(index=False, float_format="%.2f", na_rep="--", escape=True)
     contenido = (
         "\\begin{table}[H]\n\\centering\n\\scriptsize\n"
         f"\\caption{{{caption}}}\n\\label{{{label}}}\n"
-        f"{cuerpo}\n\\end{{table}}\n"
+        f"\\resizebox{{\\textwidth}}{{!}}{{%\n{cuerpo}}}\n"
+        f"\\end{{table}}\n"
     )
     path.write_text(contenido, encoding="utf-8")
 
@@ -574,25 +584,29 @@ def ejecutar_parte3() -> dict[str, Any]:
         "caida_porcentual",
         "meses_recuperacion",
         "mejor_modelo",
-        "MAE",
-        "RMSE",
     ]
+    fronteras_tabla = comparacion_fronteras[cols_tabla].copy()
+    fronteras_tabla["mejor_modelo"] = fronteras_tabla["mejor_modelo"].map(_acortar_nombre_modelo)
+    vias_tabla = comparacion_vias[cols_tabla].copy()
+    vias_tabla["mejor_modelo"] = vias_tabla["mejor_modelo"].map(_acortar_nombre_modelo)
     _dataframe_a_latex(
-        comparacion_fronteras[cols_tabla],
+        fronteras_tabla,
         TABLAS_LATEX_DIR / "comparacion_fronteras.tex",
-        "Comparacion estadistica entre las tres fronteras principales.",
+        "Comparacion estadistica entre las tres fronteras principales (MAE/RMSE del mejor modelo en la Tabla~\\ref{tab:mejores-modelos}).",
         "tab:comparacion-fronteras",
     )
     _dataframe_a_latex(
-        comparacion_vias[cols_tabla],
+        vias_tabla,
         TABLAS_LATEX_DIR / "comparacion_vias.tex",
-        "Comparacion estadistica entre las tres vias de ingreso.",
+        "Comparacion estadistica entre las tres vias de ingreso (MAE/RMSE del mejor modelo en la Tabla~\\ref{tab:mejores-modelos}).",
         "tab:comparacion-vias",
     )
+    mejores_tabla = mejores_modelos[["serie", "modelo_seleccionado", "MAE", "RMSE", "AIC", "BIC"]].copy()
+    mejores_tabla["modelo_seleccionado"] = mejores_tabla["modelo_seleccionado"].map(_acortar_nombre_modelo)
     _dataframe_a_latex(
-        mejores_modelos,
+        mejores_tabla,
         TABLAS_LATEX_DIR / "mejores_modelos.tex",
-        "Mejor modelo seleccionado para cada serie.",
+        "Mejor modelo seleccionado para cada serie (justificacion en el texto).",
         "tab:mejores-modelos",
     )
 
