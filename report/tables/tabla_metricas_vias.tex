@@ -1,0 +1,46 @@
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Metricas de modelos para las series por via de ingreso.}
+\label{tab:metricas-vias}
+\begin{tabular}{llrrrrr}
+\toprule
+serie & modelo & MAE & RMSE & MAPE & AIC & BIC \\
+\midrule
+Vía Aérea & ARIMA(0, 1, 0)x(1, 0, 1, 12) & 73006.22 & 78140.71 & 75.45 & 2897.17 & 2905.84 \\
+Vía Aérea & ARIMA(1, 1, 1)x(1, 0, 1, 12) & 70831.33 & 75940.72 & 73.16 & 2901.92 & 2916.33 \\
+Vía Aérea & ARIMA(1, 1, 1)x(0, 0, 1, 12) & 22914.63 & 27998.65 & 22.79 & 2930.95 & 2942.48 \\
+Vía Aérea & Prophet & 52606.20 & 55660.59 & 59.75 & -- & -- \\
+Vía Aérea & HoltWinters(trend=add,seasonal=add,damped=False) & 59521.52 & 64256.05 & 61.19 & 2740.53 & 2788.38 \\
+Vía Aérea & HoltWinters(trend=add,seasonal=add,damped=True) & 43002.67 & 46980.16 & 43.79 & 2740.96 & 2791.80 \\
+Vía Aérea & HoltWinters(trend=add,seasonal=mul,damped=False) & 25453.98 & 30455.53 & 25.38 & 2734.83 & 2782.68 \\
+Vía Aérea & SuavizamientoExponencial(simple) & 36970.60 & 42141.22 & 36.75 & 2875.29 & 2881.27 \\
+Vía Aérea & SuavizamientoExponencial(holt) & 41663.82 & 46728.04 & 41.61 & 2879.28 & 2891.24 \\
+Vía Aérea & SuavizamientoExponencial(holt\_amortiguado) & 36970.60 & 42141.22 & 36.75 & 2881.28 & 2896.24 \\
+Vía Aérea & SeasonalNaive & 75512.73 & 79339.80 & 81.48 & -- & -- \\
+Vía Terrestre & ARIMA(2, 1, 3)x(1, 0, 1, 12) & 147367.15 & 158502.36 & 99.66 & 3067.59 & 3090.53 \\
+Vía Terrestre & ARIMA(1, 1, 1)x(1, 0, 1, 12) & 147494.21 & 158548.37 & 99.93 & 3114.25 & 3128.66 \\
+Vía Terrestre & ARIMA(1, 1, 1)x(0, 0, 1, 12) & 147532.18 & 158564.18 & 100.00 & 3135.05 & 3146.59 \\
+Vía Terrestre & Prophet & 123423.17 & 134941.03 & 89.09 & -- & -- \\
+Vía Terrestre & HoltWinters(trend=add,seasonal=add,damped=False) & 145591.06 & 157840.43 & 94.73 & 3030.88 & 3078.72 \\
+Vía Terrestre & HoltWinters(trend=add,seasonal=add,damped=True) & 128386.45 & 139123.21 & 82.56 & 3027.48 & 3078.31 \\
+Vía Terrestre & HoltWinters(trend=add,seasonal=mul,damped=False) & 107808.72 & 118717.14 & 65.63 & 3001.02 & 3048.86 \\
+Vía Terrestre & SuavizamientoExponencial(simple) & 121715.66 & 134136.26 & 74.64 & 3078.96 & 3084.94 \\
+Vía Terrestre & SuavizamientoExponencial(holt) & 130054.59 & 143087.97 & 79.71 & 3082.94 & 3094.90 \\
+Vía Terrestre & SuavizamientoExponencial(holt\_amortiguado) & 121717.95 & 134138.62 & 74.64 & 3084.88 & 3099.83 \\
+Vía Terrestre & SeasonalNaive & 132209.04 & 144274.98 & 84.83 & -- & -- \\
+Vía Marítima & ARIMA(0, 1, 1)x(1, 0, 1, 12) & -- & -- & -- & 522.91 & 532.49 \\
+Vía Marítima & ARIMA(1, 1, 1)x(1, 0, 1, 12) & -- & -- & -- & 524.91 & 536.89 \\
+Vía Marítima & ARIMA(1, 1, 1)x(1, 0, 0, 12) & -- & -- & -- & 549.93 & 559.55 \\
+Vía Marítima & Prophet & -- & -- & -- & -- & -- \\
+Vía Marítima & HoltWinters(trend=add,seasonal=add,damped=False) & -- & -- & -- & 941.68 & 982.71 \\
+Vía Marítima & HoltWinters(trend=add,seasonal=add,damped=True) & -- & -- & -- & 940.07 & 983.67 \\
+Vía Marítima & HoltWinters(trend=add,seasonal=mul,damped=False) & -- & -- & -- & 937.51 & 978.54 \\
+Vía Marítima & SuavizamientoExponencial(simple) & -- & -- & -- & 1032.02 & 1037.15 \\
+Vía Marítima & SuavizamientoExponencial(holt) & -- & -- & -- & 1035.29 & 1045.55 \\
+Vía Marítima & SuavizamientoExponencial(holt\_amortiguado) & -- & -- & -- & 1038.16 & 1050.99 \\
+Vía Marítima & SeasonalNaive & -- & -- & -- & -- & -- \\
+\bottomrule
+\end{tabular}
+
+\end{table}

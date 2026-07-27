@@ -22,6 +22,8 @@
 
 \maketitle
 
+\input{values/resultados_clave.tex}
+
 \section{Introducción}
 
 El laboratorio tuvo como propósito construir una base reproducible para describir y preparar el modelado del ingreso mensual de viajeros a Guatemala mediante técnicas de series de tiempo. El interés analítico estuvo en resumir la evolución temporal del flujo de viajeros, identificar cambios estructurales relevantes y dejar una partición cronológica que permitiera desarrollar la etapa posterior de pronóstico sin mezclar información futura con el conjunto de entrenamiento.
@@ -324,5 +326,165 @@ La Figura~\ref{fig:series-vias} permitió distinguir tres escalas operativas. La
 \end{table}
 
 La Tabla~\ref{tab:estacionariedad} condensó el diagnóstico inicial para las siete series. En todos los casos el valor sugerido para la diferenciación regular fue $d=1$, mientras que no se recomendó una diferencia estacional adicional ($D=0$) como primera opción. Este resultado no implicó que la estacionalidad desapareciera, sino que la evidencia del ADF y del flujo automatizado fue suficiente para priorizar una diferencia no estacional en la fase siguiente. En conjunto, la primera parte del trabajo dejó series coherentes, una partición cronológica estable y una base estadística suficiente para iniciar la comparación de modelos en la Parte 2 del laboratorio.
+
+\section{Modelos y pronósticos}
+
+\subsection{Metodología de búsqueda y selección}
+
+Para cada una de las \NumeroSeries\ series se construyó una rejilla acotada de candidatos ARIMA/SARIMA alrededor de la evidencia de la Parte 1: $d=1$ para todas las series (valor sugerido por el ADF sobre la primera diferencia), $p,q \in \{0,1,2,3\}$ sin componente estacional, más un pequeño conjunto de variantes estacionales $(1,d,1)\times(P,D,Q,12)$ con $P,Q \in \{0,1\}$ y $D$ tomado del diagnóstico de la Parte 1 (0 en las siete series). Esta rejilla se complementó con \texttt{pmdarima.auto\_arima} como apoyo, no como sustituto: en varias series el orden sugerido por \texttt{auto\_arima} coincidió en $(p,d,q)$ con un candidato de la rejilla manual pero reportó un AIC distinto (por ejemplo, para el total mensual \texttt{auto\_arima} sugirió $(2,1,2)\times(1,0,1,12)$ con AIC$=3532.40$, mientras que el mismo orden ajustado directamente con \texttt{SARIMAX} obtuvo AIC$=3167.86$). La diferencia se debe a que \texttt{auto\_arima} incorpora por defecto un término de tendencia/intercepto que la rejilla manual no incluye; por esa razón se priorizó la rejilla manual, ajustada de forma consistente entre candidatos, y \texttt{auto\_arima} se usó solo como referencia de órdenes razonables.
+
+De cada rejilla se seleccionaron los tres candidatos con menor AIC como finalistas. A cada finalista se le generó diagnóstico de residuos (serie en el tiempo, histograma, gráfico Q-Q, ACF de residuos y prueba de Ljung-Box en el rezago 12). Además del bloque ARIMA/SARIMA se ajustaron, para todas las series: Prophet (estacionalidad anual, con una covariable binaria que marca el período de pandemia 2020-03 a 2021-12), tres variantes de Holt-Winters (aditivo, aditivo con tendencia amortiguada y, cuando la serie fue estrictamente positiva, multiplicativo), tres variantes de suavizamiento exponencial sin componente estacional (simple, Holt, Holt con tendencia amortiguada) y \emph{seasonal naive} con período 12.
+
+El pronóstico de cada modelo se generó exactamente para el horizonte del conjunto de prueba y, cuando la serie usó una transformación (log o Box-Cox aproximada) en la Parte 1, esa transformación se aplicó antes de ajustar el ARIMA/SARIMA y se revirtió antes de calcular las métricas. El mejor modelo por serie se eligió priorizando el menor RMSE de prueba entre los modelos convergentes cuyos residuos no mostraran autocorrelación significativa (Ljung-Box $p>0.05$ cuando aplica); el AIC/BIC se usó como criterio secundario dentro de la familia ARIMA/SARIMA, nunca como criterio único, porque en varias series el candidato con mejor AIC en entrenamiento no fue el que mejor generalizó en prueba (se detalla en cada subsección). La única excepción metodológica fue Vía Marítima, sin observaciones de prueba (ver \S\ref{sec:via-maritima}), donde el mejor modelo se eligió por menor AIC en entrenamiento.
+
+\subsection{Serie total}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.92\textwidth]{figures/comparacion_modelos_total_mensual.png}
+    \caption{Comparación de los cuatro mejores pronósticos para la serie total mensual.}
+    \label{fig:comparacion-total}
+\end{figure}
+
+\input{tables/tabla_metricas_total.tex}
+
+Para el total mensual, el finalista ARIMA con mejor AIC en entrenamiento, $(2,1,2)\times(1,0,1,12)$ (AIC$=3167.86$), fue también el de peor desempeño en prueba (RMSE$=250{,}634$), junto con $(1,1,1)\times(1,0,1,12)$ (RMSE$=251{,}485$). El mejor modelo global fue \MejorModeloTotal\ (RMSE$=\RMSETotal$, MAE$=\MAETotal$), muy por delante del resto. La Figura~\ref{fig:comparacion-total} y el diagnóstico de residuos del mejor finalista ARIMA (Figura~\ref{fig:residuos-total}) ayudan a explicar por qué: el conjunto de entrenamiento termina en marzo de 2021, en plena recuperación temprana tras el mínimo de la pandemia, y los modelos ARIMA/SARIMA extrapolan esa dinámica de forma casi lineal, mientras que Holt-Winters multiplicativo captura mejor un rebote proporcional al nivel, más parecido a la recuperación real observada 2021-2026.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figures/residuos_total_mensual_arima_2_1_2_x_1_0_1_12.png}
+    \caption{Diagnóstico de residuos del finalista ARIMA(2,1,2)x(1,0,1,12) para la serie total (mejor AIC, pero peor RMSE de prueba).}
+    \label{fig:residuos-total}
+\end{figure}
+
+\subsection{Series por frontera}
+
+\input{tables/tabla_metricas_fronteras.tex}
+
+En Frontera 01 La Aurora ocurrió un patrón similar al de la serie total: el finalista con mejor AIC, $(0,1,0)\times(1,0,1,12)$ (AIC$=2896.87$), tuvo RMSE de prueba de $77{,}953$, mientras que ARIMA$(1,1,1)\times(0,0,1,12)$ (AIC$=2930.62$, el peor de los tres finalistas) obtuvo el mejor RMSE de todos los modelos ajustados ($27{,}986$), superando incluso a Holt-Winters multiplicativo ($30{,}237$). En Frontera 07 Valle Nuevo, en cambio, ningún ARIMA/SARIMA superó a los métodos de suavizado: el mejor ARIMA (AIC$=2853.42$) tuvo RMSE$=51{,}920$, muy por encima del Holt-Winters aditivo con tendencia amortiguada seleccionado (RMSE$=38{,}092$). Frontera 09 San Cristóbal fue la única de las tres donde un ARIMA/SARIMA —$(1,1,1)\times(1,0,1,12)$, ajustado sobre la transformación Box-Cox aproximada sugerida en la Parte 1— resultó claramente el mejor modelo (RMSE$=6{,}831$), muy por debajo de Holt-Winters multiplicativo (RMSE$=19{,}905$); es también la frontera con menor volumen y mayor volatilidad relativa, por lo que la transformación de varianza parece haber ayudado más que en las otras dos.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figures/residuos_frontera_01_la_aurora_arima_1_1_1_x_0_0_1_12.png}
+    \caption{Diagnóstico de residuos del modelo seleccionado para Frontera 01 La Aurora, ARIMA(1,1,1)x(0,0,1,12).}
+    \label{fig:residuos-aurora}
+\end{figure}
+
+\subsection{Series por vía de ingreso}
+
+\input{tables/tabla_metricas_vias.tex}
+
+Vía Aérea reprodujo casi exactamente el comportamiento de Frontera 01 La Aurora (mismo modelo ganador, ARIMA$(1,1,1)\times(0,0,1,12)$, RMSE$=27{,}999$), consistente con que la Aurora concentra la enorme mayoría del tráfico aéreo. Vía Terrestre, la de mayor volumen absoluto, fue mejor pronosticada por Holt-Winters multiplicativo (RMSE$=118{,}717$) que por cualquier ARIMA/SARIMA (mejor ARIMA con RMSE$=158{,}502$), repitiendo el patrón de la serie total.
+
+\subsubsection{Caso especial: Vía Marítima}
+\label{sec:via-maritima}
+
+Al construir y depurar las series de la Parte 1 se detectó que Vía Marítima solo tiene observaciones reales entre enero de 2009 y diciembre de 2016; a partir de 2017 no existe ningún registro en el conjunto de datos para esa vía, por lo que el 100\,\% del conjunto de prueba (abril 2021 a junio 2026) carece de valor real contra el cual evaluar un pronóstico. Los modelos ARIMA/SARIMA, Holt-Winters, suavizamiento exponencial y \emph{seasonal naive} se ajustaron igualmente sobre el tramo válido y contiguo 2009-2016 (96 observaciones) y generan un pronóstico de 63 meses hacia adelante con fines exploratorios, pero MAE, RMSE y MAPE no son evaluables y se reportan como \emph{N/D}. Ante la ausencia de una métrica de prueba, el mejor modelo se seleccionó por menor AIC en entrenamiento: ARIMA$(0,1,1)\times(1,0,1,12)$ (AIC$=522.91$). Esta discontinuidad se trata como un hallazgo en sí mismo en la Sección~\ref{sec:hallazgos-inguat}, no como un error de procesamiento.
+
+\subsection{Resumen comparativo}
+
+\input{tables/mejores_modelos.tex}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{figures/rmse_por_serie.png}
+    \caption{RMSE de prueba del mejor modelo por serie (Vía Marítima omitida por falta de datos de prueba).}
+    \label{fig:rmse-por-serie}
+\end{figure}
+
+La Tabla~\ref{tab:mejores-modelos} y la Figura~\ref{fig:rmse-por-serie} resumen el patrón general: Holt-Winters (variantes aditiva o multiplicativa) ganó en las series de mayor volumen y con quiebre estructural más marcado por la pandemia (Total mensual, Vía Terrestre, Frontera 07 Valle Nuevo), mientras que ARIMA/SARIMA ganó en las series donde La Aurora domina el flujo (Frontera 01 La Aurora, Vía Aérea) y en la serie de menor escala con transformación de varianza (Frontera 09 San Cristóbal). En ningún caso el modelo con mejor AIC/BIC de entrenamiento fue automáticamente el de mejor RMSE de prueba, lo que confirma la necesidad de comparar ambos criterios en lugar de escoger solo por ajuste dentro de muestra.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{figures/mejor_pronostico_por_serie.png}
+    \caption{Pronóstico del mejor modelo contra el valor real, para cada una de las siete series, en el conjunto de prueba.}
+    \label{fig:mejor-pronostico}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{figures/real_vs_predicho.png}
+    \caption{Valores reales contra predichos del mejor modelo de cada serie (conjunto de prueba).}
+    \label{fig:real-vs-predicho}
+\end{figure}
+
+\section{Análisis comparativo}
+
+Esta sección responde, con la evidencia estadística de la Tabla~\ref{tab:comparacion-fronteras} (fronteras) y la Tabla~\ref{tab:comparacion-vias} (vías), las preguntas comparativas del laboratorio. La fuerza de estacionalidad se calculó como $F_s = \max(0, 1 - \mathrm{Var}(\text{residuo}) / \mathrm{Var}(\text{estacional} + \text{residuo}))$ sobre la descomposición aditiva de cada serie completa; la tendencia se resume con la pendiente de la componente de tendencia descompuesta; la volatilidad, con el coeficiente de variación; y el impacto de la pandemia, con la caída porcentual del mínimo de 2020 frente al promedio de 2019 y los meses necesarios para volver a ese promedio. Los porcentajes de \emph{crecimiento post-pandemia} calculados sobre el mínimo de 2020 no se usan como evidencia principal de tendencia porque, al partir de una base casi nula, producen variaciones porcentuales artificialmente enormes (ver \texttt{outputs/parte3/comparacion\_modelos\_global.csv}); se prioriza en su lugar la pendiente de la tendencia y el crecimiento pre-pandemia (2019 contra el primer año completo disponible).
+
+\subsection{Fronteras}
+
+\input{tables/comparacion_fronteras.tex}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.92\textwidth]{figures/fronteras_superpuestas.png}
+    \caption{Series mensuales completas de las tres fronteras principales.}
+    \label{fig:fronteras-superpuestas}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{figures/estacionalidad_fronteras.png}
+    \caption{Distribución mensual (boxplot por mes) de cada frontera principal.}
+    \label{fig:estacionalidad-fronteras}
+\end{figure}
+
+\begin{itemize}
+    \item \textbf{Mayor estacionalidad:} Frontera 01 La Aurora ($F_s=0.57$), la más alta de las tres, coherente con un aeropuerto cuya demanda se concentra en temporadas vacacionales específicas.
+    \item \textbf{Mayor tendencia de crecimiento:} Frontera 09 San Cristóbal, con la pendiente de tendencia más pronunciada (65.0 viajeros/mes) y el mayor crecimiento acumulado 2009-2019 (237.9\,\% frente a 59.0\,\% en La Aurora y 152.2\,\% en Valle Nuevo), es decir, la frontera que más creció de forma sostenida antes de la pandemia.
+    \item \textbf{Mayor volatilidad:} Frontera 09 San Cristóbal, con el coeficiente de variación más alto (0.57) de las tres, reflejo de su menor volumen absoluto y mayor sensibilidad relativa a choques.
+    \item \textbf{Más afectada por la pandemia:} en caída porcentual, Frontera 09 San Cristóbal fue la más golpeada ($-99.96\,\%$ frente al promedio de 2019), pero también la que más rápido recuperó su nivel previo (18 meses), precisamente por partir de un volumen pequeño. Frontera 01 La Aurora, con una caída relativa apenas menor ($-99.61\,\%$), tardó más en términos absolutos (27 meses) por tener que recuperar un volumen mensual varias veces mayor.
+\end{itemize}
+
+\subsection{Vías de ingreso}
+
+\input{tables/comparacion_vias.tex}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.92\textwidth]{figures/vias_superpuestas.png}
+    \caption{Series mensuales completas de las tres vías de ingreso.}
+    \label{fig:vias-superpuestas}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{figures/estacionalidad_vias.png}
+    \caption{Distribución mensual (boxplot por mes) de cada vía de ingreso.}
+    \label{fig:estacionalidad-vias}
+\end{figure}
+
+Las fronteras y las vías no se comparan en una sola clasificación conjunta: una frontera es un punto físico de ingreso y una vía agrupa varias fronteras (por ejemplo, Vía Aérea incluye a La Aurora y otros aeropuertos menores), por lo que sus escalas y su composición no son directamente equivalentes.
+
+\begin{itemize}
+    \item \textbf{Mayor estacionalidad:} tomando solo las dos vías con historia completa y comparable, Vía Aérea ($F_s=0.57$) supera a Vía Terrestre ($F_s=0.43$). Vía Marítima muestra un valor numérico más alto (0.77), pero se calcula únicamente sobre 2009-2016 (su único tramo con datos), por lo que no es comparable en igualdad de condiciones y no se usa para esta conclusión.
+    \item \textbf{Mayor tendencia de crecimiento:} Vía Terrestre, con una pendiente de tendencia muchísimo mayor (352 viajeros/mes) y un crecimiento pre-pandemia de 184.1\,\% frente a 58.6\,\% en Vía Aérea.
+    \item \textbf{Mayor volatilidad:} Vía Terrestre (coeficiente de variación 0.46) frente a Vía Aérea (0.31); nuevamente se excluye Vía Marítima de la comparación por la misma razón de ventana de datos incompleta.
+    \item \textbf{Más afectada por la pandemia:} en el sentido cíclico (caída y recuperación), Vía Aérea sufrió la mayor caída porcentual ($-99.60\,\%$ frente a $-97.63\,\%$ en Vía Terrestre), coherente con el cierre casi total de fronteras aéreas internacionales en 2020. En un sentido más estructural, Vía Marítima es la más afectada de las tres: no se trata de una caída cíclica sino de una interrupción que nunca se revirtió, pues no vuelve a tener registros después de 2016.
+\end{itemize}
+
+\subsection{Hallazgos para INGUAT}
+\label{sec:hallazgos-inguat}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.92\textwidth]{figures/caida_recuperacion_pandemia.png}
+    \caption{Índice de viajeros (2019 = 100) antes, durante y después de la pandemia, por frontera y vía.}
+    \label{fig:caida-recuperacion}
+\end{figure}
+
+A partir de las tablas y figuras anteriores, los hallazgos con mayor potencial de uso para la planificación del INGUAT son:
+
+\begin{enumerate}
+    \item \textbf{Recuperación desigual entre fronteras.} Frontera 01 La Aurora tardó 27 meses en volver a su nivel de 2019, la más lenta de las tres, pese a no ser la que sufrió la mayor caída porcentual. La capacidad de recuperación no depende solo de la severidad de la caída relativa, sino del volumen absoluto que hay que recuperar; esto sugiere priorizar apoyo operativo y promoción diferenciada en La Aurora en escenarios de choque futuro.
+    \item \textbf{Concentración estacional en La Aurora.} Con la mayor fuerza de estacionalidad entre fronteras (0.57), La Aurora concentra su demanda en meses recurrentes específicos, lo que es útil para planificar capacidad migratoria y de infraestructura en temporada alta.
+    \item \textbf{Vía Terrestre concentra la mayor incertidumbre.} Con el coeficiente de variación más alto entre vías (0.46) y el mayor volumen absoluto del país, es la vía más difícil de pronosticar con precisión y la más sensible a choques externos; conviene monitorearla con mayor frecuencia y usar intervalos de pronóstico amplios.
+    \item \textbf{El riesgo pandémico no se distribuyó igual entre vías.} Vía Aérea sufrió la mayor caída porcentual ($-99.6\,\%$); depender de una sola vía concentra el riesgo ante un choque futuro similar, por lo que diversificar la promoción entre vías reduce la exposición del sector turístico a un cierre de fronteras aéreas.
+    \item \textbf{El desempeño de los modelos no es uniforme entre series.} La serie total mensual tuvo el mayor RMSE de prueba entre todas las series modeladas, señal de que los cambios estructurales recientes (recuperación pospandemia) son más difíciles de capturar a nivel agregado que a nivel de frontera o vía individual; el seguimiento operativo del INGUAT se beneficia de monitorear las series desagregadas, no solo el total.
+    \item \textbf{Vía Marítima dejó de reportarse desde 2017.} Independientemente de cualquier modelo de pronóstico, el hallazgo más accionable de esta vía es que el propio dato desapareció: si la vía marítima sigue existiendo operativamente, el INGUAT debería revisar por qué dejó de registrarse en esta fuente, ya que ningún modelo estadístico puede compensar la ausencia total de información reciente.
+\end{enumerate}
+
+Estos hallazgos muestran asociación temporal y estadística entre eventos (pandemia, estacionalidad, tipo de vía) y el comportamiento de los flujos de viajeros; no se interpretan como relaciones causales, ya que el diseño del estudio es observacional y no permite descartar otros factores externos (política migratoria, oferta de vuelos, condiciones económicas regionales) que pudieron actuar simultáneamente.
 
 \end{document}

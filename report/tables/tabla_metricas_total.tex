@@ -1,0 +1,24 @@
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Metricas de modelos para la serie total mensual.}
+\label{tab:metricas-total}
+\begin{tabular}{llrrrrr}
+\toprule
+serie & modelo & MAE & RMSE & MAPE & AIC & BIC \\
+\midrule
+Total mensual & ARIMA(2, 1, 2)x(1, 0, 1, 12) & 237190.29 & 250633.81 & 96.53 & 3167.86 & 3187.99 \\
+Total mensual & ARIMA(1, 1, 1)x(1, 0, 1, 12) & 238635.41 & 251484.82 & 97.56 & 3194.75 & 3209.17 \\
+Total mensual & ARIMA(1, 1, 1)x(0, 0, 1, 12) & 213333.80 & 224222.68 & 87.94 & 3218.76 & 3230.29 \\
+Total mensual & Prophet & 179020.43 & 193081.63 & 73.75 & -- & -- \\
+Total mensual & HoltWinters(trend=add,seasonal=add,damped=False) & 218366.73 & 234694.30 & 85.22 & 3098.79 & 3146.64 \\
+Total mensual & HoltWinters(trend=add,seasonal=add,damped=True) & 171689.57 & 183893.88 & 67.51 & 3097.52 & 3148.35 \\
+Total mensual & HoltWinters(trend=add,seasonal=mul,damped=False) & 134374.79 & 146605.58 & 51.47 & 3081.15 & 3129.00 \\
+Total mensual & SuavizamientoExponencial(simple) & 165372.54 & 180598.23 & 62.91 & 3177.19 & 3183.17 \\
+Total mensual & SuavizamientoExponencial(holt) & 180147.45 & 196352.92 & 68.54 & 3181.16 & 3193.12 \\
+Total mensual & SuavizamientoExponencial(holt\_amortiguado) & 165379.60 & 180605.59 & 62.91 & 3183.17 & 3198.12 \\
+Total mensual & SeasonalNaive & 207321.64 & 219663.87 & 84.91 & -- & -- \\
+\bottomrule
+\end{tabular}
+
+\end{table}

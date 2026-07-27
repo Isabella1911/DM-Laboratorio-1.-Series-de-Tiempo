@@ -1,0 +1,46 @@
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Metricas de modelos para las series por frontera.}
+\label{tab:metricas-fronteras}
+\begin{tabular}{llrrrrr}
+\toprule
+serie & modelo & MAE & RMSE & MAPE & AIC & BIC \\
+\midrule
+Frontera 01 La Aurora & ARIMA(0, 1, 0)x(1, 0, 1, 12) & 72873.78 & 77952.82 & 75.38 & 2896.87 & 2905.54 \\
+Frontera 01 La Aurora & ARIMA(1, 1, 1)x(1, 0, 1, 12) & 70766.55 & 75820.71 & 73.15 & 2901.56 & 2915.97 \\
+Frontera 01 La Aurora & ARIMA(1, 1, 1)x(0, 0, 1, 12) & 22967.05 & 27986.19 & 22.89 & 2930.62 & 2942.15 \\
+Frontera 01 La Aurora & Prophet & 53092.62 & 56118.66 & 60.28 & -- & -- \\
+Frontera 01 La Aurora & HoltWinters(trend=add,seasonal=add,damped=False) & 59393.22 & 64074.54 & 61.12 & 2740.20 & 2788.05 \\
+Frontera 01 La Aurora & HoltWinters(trend=add,seasonal=add,damped=True) & 42932.58 & 46855.15 & 43.78 & 2740.61 & 2791.45 \\
+Frontera 01 La Aurora & HoltWinters(trend=add,seasonal=mul,damped=False) & 25155.78 & 30236.81 & 25.04 & 2734.63 & 2782.48 \\
+Frontera 01 La Aurora & SuavizamientoExponencial(simple) & 36821.79 & 42053.32 & 36.56 & 2874.79 & 2880.77 \\
+Frontera 01 La Aurora & SuavizamientoExponencial(holt) & 41426.23 & 46542.04 & 41.35 & 2878.78 & 2890.75 \\
+Frontera 01 La Aurora & SuavizamientoExponencial(holt\_amortiguado) & 36821.79 & 42053.32 & 36.56 & 2880.79 & 2895.74 \\
+Frontera 01 La Aurora & SeasonalNaive & 75518.44 & 79320.76 & 81.48 & -- & -- \\
+Frontera 07 Valle Nuevo & ARIMA(2, 1, 2)x(1, 0, 1, 12) & 47259.00 & 51920.47 & 98.02 & 2853.42 & 2873.54 \\
+Frontera 07 Valle Nuevo & ARIMA(1, 1, 1)x(1, 0, 1, 12) & 47478.46 & 51999.33 & 99.90 & 2876.86 & 2891.27 \\
+Frontera 07 Valle Nuevo & ARIMA(1, 1, 1)x(0, 0, 1, 12) & 47523.92 & 52036.78 & 100.00 & 2890.20 & 2901.74 \\
+Frontera 07 Valle Nuevo & Prophet & 42868.54 & 47010.38 & 104.98 & -- & -- \\
+Frontera 07 Valle Nuevo & HoltWinters(trend=add,seasonal=add,damped=False) & 39009.41 & 42001.36 & 100.04 & 2787.81 & 2835.66 \\
+Frontera 07 Valle Nuevo & HoltWinters(trend=add,seasonal=add,damped=True) & 35211.09 & 38092.01 & 85.42 & 2780.24 & 2831.07 \\
+Frontera 07 Valle Nuevo & HoltWinters(trend=add,seasonal=mul,damped=False) & 36691.11 & 41093.50 & 73.03 & 2761.72 & 2809.57 \\
+Frontera 07 Valle Nuevo & SuavizamientoExponencial(simple) & 40769.93 & 45662.79 & 79.97 & 2809.12 & 2815.11 \\
+Frontera 07 Valle Nuevo & SuavizamientoExponencial(holt) & 43109.45 & 48125.03 & 84.30 & 2813.12 & 2825.08 \\
+Frontera 07 Valle Nuevo & SuavizamientoExponencial(holt\_amortiguado) & 40768.55 & 45661.28 & 79.97 & 2814.70 & 2829.65 \\
+Frontera 07 Valle Nuevo & SeasonalNaive & 44707.23 & 49660.59 & 91.39 & -- & -- \\
+Frontera 09 San Cristóbal & ARIMA(0, 1, 2)x(1, 0, 1, 12) & 5695.54 & 7809.73 & 89.80 & 1550.79 & 1565.17 \\
+Frontera 09 San Cristóbal & ARIMA(1, 1, 1)x(1, 0, 1, 12) & 5065.26 & 6830.96 & 89.51 & 1564.38 & 1578.79 \\
+Frontera 09 San Cristóbal & ARIMA(1, 1, 1)x(0, 0, 1, 12) & 22433.07 & 24911.56 & 94.83 & 1579.71 & 1591.24 \\
+Frontera 09 San Cristóbal & Prophet & 17823.64 & 19977.52 & 100.07 & -- & -- \\
+Frontera 09 San Cristóbal & HoltWinters(trend=add,seasonal=add,damped=False) & 22984.98 & 25463.77 & 99.22 & 2597.43 & 2645.28 \\
+Frontera 09 San Cristóbal & HoltWinters(trend=add,seasonal=add,damped=True) & 21661.05 & 24030.56 & 91.89 & 2592.03 & 2642.87 \\
+Frontera 09 San Cristóbal & HoltWinters(trend=add,seasonal=mul,damped=False) & 17582.55 & 19904.99 & 68.40 & 2584.10 & 2631.95 \\
+Frontera 09 San Cristóbal & SuavizamientoExponencial(simple) & 20482.95 & 23091.34 & 80.03 & 2613.03 & 2619.01 \\
+Frontera 09 San Cristóbal & SuavizamientoExponencial(holt) & 21503.52 & 24224.07 & 83.22 & 2617.05 & 2629.01 \\
+Frontera 09 San Cristóbal & SuavizamientoExponencial(holt\_amortiguado) & 20483.60 & 23092.07 & 80.03 & 2619.01 & 2633.96 \\
+Frontera 09 San Cristóbal & SeasonalNaive & 21407.95 & 24052.52 & 86.23 & -- & -- \\
+\bottomrule
+\end{tabular}
+
+\end{table}

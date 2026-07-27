@@ -1,0 +1,16 @@
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Comparacion estadistica entre las tres vias de ingreso.}
+\label{tab:comparacion-vias}
+\begin{tabular}{lrrrrllrr}
+\toprule
+serie & fuerza\_estacionalidad & pendiente\_tendencia & coeficiente\_variacion & caida\_porcentual & meses\_recuperacion & mejor\_modelo & MAE & RMSE \\
+\midrule
+Vía Aérea & 0.57 & 48.87 & 0.31 & -99.60 & 27 & ARIMA(1, 1, 1)x(0, 0, 1, 12) & 22914.63 & 27998.65 \\
+Vía Terrestre & 0.43 & 351.80 & 0.46 & -97.63 & 24 & HoltWinters(trend=add,seasonal=mul,damped=False) & 107808.72 & 118717.14 \\
+Vía Marítima & 0.77 & -1.21 & 0.21 & -- & sin\_datos\_suficientes & ARIMA(0, 1, 1)x(1, 0, 1, 12) & -- & -- \\
+\bottomrule
+\end{tabular}
+
+\end{table}
