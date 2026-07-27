@@ -29,3 +29,9 @@ Thumbs.db
 # Project outputs and generated artifacts
 outputs/
 
+# LaTeX build artifacts
+report/*.aux
+report/*.log
+report/*.out
+report/*.toc
+
