@@ -28,6 +28,10 @@ Thumbs.db
 
 # Project outputs and generated artifacts
 outputs/
+modelos/
+*.keras
+resultados/figuras/
+resultados/run_lstm.log
 
 # LaTeX build artifacts
 report/*.aux

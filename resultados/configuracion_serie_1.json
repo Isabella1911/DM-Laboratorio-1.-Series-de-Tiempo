@@ -1,0 +1,15 @@
+{
+    "modelo": "LSTM_1",
+    "look_back": 6,
+    "unidades_1": 32,
+    "unidades_2": NaN,
+    "dropout": 0.1,
+    "learning_rate": 0.001,
+    "batch_size": 16,
+    "epocas_ejecutadas": 79,
+    "mejor_epoca": 59,
+    "val_MAE": 75504.63002232143,
+    "val_RMSE": 110768.92709214463,
+    "val_MAPE": 381.5885972858672,
+    "val_R2": 0.5068714943111103
+}

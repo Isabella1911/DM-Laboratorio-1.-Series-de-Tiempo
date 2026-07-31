@@ -1,0 +1,5 @@
+modelo,look_back,unidades_1,unidades_2,dropout,learning_rate,batch_size
+LSTM_1,6,32,,0.1,0.001,16
+LSTM_2,12,64,,0.2,0.001,16
+LSTM_3,12,64,32.0,0.2,0.0005,32
+LSTM_4,24,64,32.0,0.3,0.0005,32

@@ -12,3 +12,6 @@ pmdarima>=2.0.4
 prophet>=1.1.5
 jupyter>=1.0
 jupyterlab>=4.0
+keras>=3.0
+torch>=2.0
+# TensorFlow no tiene ruedas para Python 3.14; usar Keras + backend Torch.

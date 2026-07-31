@@ -22,10 +22,14 @@ notebooks/
   01_eda_y_series.ipynb            EDA, series mensuales, split train/test, estacionariedad
   02_modelos_y_pronosticos.ipynb   ARIMA/SARIMA, Prophet, Holt-Winters, exp. smoothing, naive
   03_comparacion_final.ipynb       Comparacion estadistica, hallazgos INGUAT, exportacion
+  laboratorio_2_lstm.ipynb         Laboratorio 2: tuneo LSTM y prediccion (2 series)
 src/
   lab.py                           Pipeline Parte 1 (carga, calidad, EDA, series, diagnostico)
   models.py                        Pipeline Parte 2 (modelos, diagnostico, pronosticos)
   comparacion.py                   Pipeline Parte 3 (comparacion, hallazgos, exportacion)
+  lstm_lab.py                      Pipeline Laboratorio 2 (LSTM + Keras/Torch)
+resultados/                        Metricas, predicciones e interpretaciones LSTM
+modelos/                           Mejores modelos `.keras` (ignorados en git)
 outputs/                           Generado localmente (no versionado, ver .gitignore)
   parte1/{tablas,series,figuras}, manifest.md
   parte2/{pronosticos,residuos,tablas_latex,figuras}, metricas_modelos.csv, mejores_modelos.csv
@@ -75,6 +79,19 @@ Tambien puede ejecutarse directamente desde Python (equivalente a correr los tre
 ./.venv/Scripts/python -c "from src import models as M; M.ejecutar_parte2()"
 ./.venv/Scripts/python -c "from src import comparacion as C; C.ejecutar_parte3()"
 ```
+
+### Laboratorio 2 (LSTM)
+
+Requiere `outputs/parte1/series/`. En Python 3.14 use Keras con backend Torch (no hay TensorFlow):
+
+```bash
+export KERAS_BACKEND=torch
+./.venv/bin/pip install keras torch scikit-learn
+./.venv/bin/python -m src.lstm_lab
+# o notebooks/laboratorio_2_lstm.ipynb
+```
+
+Salidas en `resultados/` y `modelos/`.
 
 ## Compilar el informe
 
