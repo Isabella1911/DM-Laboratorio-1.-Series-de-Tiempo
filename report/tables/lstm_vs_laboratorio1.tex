@@ -1,0 +1,18 @@
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{LSTM contra el mejor modelo del Laboratorio 1, mismo conjunto de prueba.}
+\label{tab:lstm-vs-lab1}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llrrr}
+\toprule
+Serie & Modelo & MAE & RMSE & MAPE \\
+\midrule
+Total mensual & HoltWinters(trend=add,seasonal=mul,damped=False) & 134374.79 & 146605.58 & 51.47 \\
+Total mensual & LSTM (LSTM\_1) & 40554.44 & 50794.23 & 18.05 \\
+Frontera 01 La Aurora & ARIMA(1, 1, 1)x(0, 0, 1, 12) & 22967.05 & 27986.19 & 22.89 \\
+Frontera 01 La Aurora & LSTM (LSTM\_1) & 15908.09 & 19295.30 & 18.82 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}

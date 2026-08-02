@@ -1,0 +1,18 @@
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Tuneo de configuraciones LSTM -- Frontera 01 La Aurora (metricas de validacion).}
+\label{tab:lstm-tuneo-aurora}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrrrrrr}
+\toprule
+modelo & look\_back & unidades\_1 & unidades\_2 & dropout & learning\_rate & batch\_size & mejor\_epoca & val\_MAE & val\_RMSE & val\_R2 \\
+\midrule
+LSTM\_1 & 6 & 32 & -- & 0.10 & 0.00 & 16 & 5 & 31458.35 & 43493.34 & 0.38 \\
+LSTM\_2 & 12 & 64 & -- & 0.20 & 0.00 & 16 & 5 & 34162.54 & 46284.52 & 0.26 \\
+LSTM\_3 & 12 & 64 & 32.00 & 0.20 & 0.00 & 32 & 3 & 41744.55 & 47011.25 & 0.24 \\
+LSTM\_4 & 24 & 64 & 32.00 & 0.30 & 0.00 & 32 & 2 & 44518.46 & 50108.25 & 0.16 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}

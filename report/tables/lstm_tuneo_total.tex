@@ -1,0 +1,18 @@
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Tuneo de configuraciones LSTM -- Total mensual (metricas de validacion).}
+\label{tab:lstm-tuneo-total}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrrrrrr}
+\toprule
+modelo & look\_back & unidades\_1 & unidades\_2 & dropout & learning\_rate & batch\_size & mejor\_epoca & val\_MAE & val\_RMSE & val\_R2 \\
+\midrule
+LSTM\_1 & 6 & 32 & -- & 0.10 & 0.00 & 16 & 59 & 75504.63 & 110768.93 & 0.51 \\
+LSTM\_2 & 12 & 64 & -- & 0.20 & 0.00 & 16 & 5 & 97317.94 & 128028.40 & 0.33 \\
+LSTM\_3 & 12 & 64 & 32.00 & 0.20 & 0.00 & 32 & 3 & 118098.43 & 132251.04 & 0.29 \\
+LSTM\_4 & 24 & 64 & 32.00 & 0.30 & 0.00 & 32 & 2 & 128620.23 & 141499.14 & 0.20 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}

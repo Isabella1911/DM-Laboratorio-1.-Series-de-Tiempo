@@ -1,0 +1,16 @@
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Mejor modelo LSTM por serie, evaluado en el conjunto de prueba.}
+\label{tab:lstm-mejores}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llrrrrr}
+\toprule
+Serie & Mejor modelo & Look back & MAE prueba & RMSE prueba & MAPE prueba & R2 prueba \\
+\midrule
+Total mensual & LSTM\_1 & 6 & 40554.44 & 50794.23 & 18.05 & 0.54 \\
+Frontera 01 La Aurora & LSTM\_1 & 6 & 15908.09 & 19295.30 & 18.82 & 0.29 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}

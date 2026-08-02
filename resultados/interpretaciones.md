@@ -10,7 +10,7 @@ Se evaluaron 4 configuraciones distintas. La configuración con el menor RMSE de
 
 ## Comparación e interpretación
 
-Para la serie **Total mensual**, el mejor modelo fue **LSTM_1**. Obtuvo un RMSE de prueba de **50794.23**, un MAE de **40554.45** y un MAPE de **18.05%**.
+Para la serie **Total mensual**, el mejor modelo fue **LSTM_1**. Obtuvo un RMSE de prueba de **50794.23**, un MAE de **40554.44** y un MAPE de **18.05%**.
 
 Para la serie **Frontera 01 La Aurora**, el mejor modelo fue **LSTM_1**, con un RMSE de **19295.30**.
 

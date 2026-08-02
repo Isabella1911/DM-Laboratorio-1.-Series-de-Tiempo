@@ -1,0 +1,16 @@
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{LSTM puro contra LSTM + catch22 -- Total mensual (conjunto de prueba).}
+\label{tab:lstm-catch22-comparacion}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llrrrr}
+\toprule
+Serie & Modelo & MAE & RMSE & MAPE & R2 \\
+\midrule
+Total mensual & LSTM (Ejercicio 1) & 40554.45 & 50794.23 & 18.05 & 0.54 \\
+Total mensual & LSTM + catch22 (2.14) & 60182.80 & 73537.01 & 31.85 & 0.04 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}

@@ -491,4 +491,209 @@ A partir de las tablas y figuras anteriores, los hallazgos con mayor potencial d
 
 Estos hallazgos muestran asociación temporal y estadística entre eventos (pandemia, estacionalidad, tipo de vía) y el comportamiento de los flujos de viajeros; no se interpretan como relaciones causales, ya que el diseño del estudio es observacional y no permite descartar otros factores externos (política migratoria, oferta de vuelos, condiciones económicas regionales) que pudieron actuar simultáneamente.
 
+\section{Laboratorio 2: Deep Learning}
+
+\subsection{Modelos LSTM (Ejercicio 1)}
+
+Para el Ejercicio 1 se seleccionaron dos series del Laboratorio 1 -- el total mensual
+(obligatoria) y Frontera 01 La Aurora (la de mayor volumen acumulado) -- y se reutilizaron
+exactamente los mismos conjuntos de entrenamiento y prueba (Tabla~\ref{tab:lstm-resumen-conjuntos}),
+sin ninguna división aleatoria. TensorFlow no publica ruedas para la versión de Python usada,
+por lo que se implementó con \textbf{Keras 3 sobre backend Torch}, conservando la misma API
+(\texttt{Sequential}, \texttt{LSTM}, \texttt{EarlyStopping}) del enunciado.
+
+\input{tables/lstm_resumen_conjuntos.tex}
+
+Para cada serie se evaluaron cuatro configuraciones LSTM (Tablas~\ref{tab:lstm-tuneo-total} y
+\ref{tab:lstm-tuneo-aurora}), variando el tamaño de la ventana de rezagos (\texttt{look\_back}),
+el número de unidades y de capas LSTM, el \textit{dropout}, la tasa de aprendizaje y el tamaño
+de lote. La selección de hiperparámetros se hizo \textbf{únicamente con un conjunto de
+validación temporal} (el 20\,\% final del entrenamiento), nunca con el conjunto de prueba, y
+se usó \texttt{EarlyStopping} sobre la pérdida de validación para evitar sobreajuste.
+
+\input{tables/lstm_tuneo_total.tex}
+\input{tables/lstm_tuneo_aurora.tex}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.48\textwidth]{figures/val_loss_serie_1.png}
+    \includegraphics[width=0.48\textwidth]{figures/val_loss_serie_2.png}
+    \caption{Pérdida de validación por época para las cuatro configuraciones LSTM: Total mensual (izquierda) y Frontera 01 La Aurora (derecha).}
+    \label{fig:lstm-val-loss}
+\end{figure}
+
+En ambas series la configuración con menor RMSE de validación fue \textbf{LSTM\_1}
+(\texttt{look\_back=6}, una sola capa LSTM de 32 unidades, \textit{dropout}=0.1,
+\texttt{learning\_rate}=0.001), la arquitectura más simple de las cuatro evaluadas; las
+configuraciones con dos capas o ventanas más largas (LSTM\_3, LSTM\_4) no mejoraron la
+validación, señal de que una ventana corta basta para capturar la dependencia relevante en
+estas series mensuales y que arquitecturas más profundas solo agregan varianza con esta
+cantidad de datos.
+
+\subsubsection{Predicción con el mejor modelo}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.48\textwidth]{figures/pred_serie_1.png}
+    \includegraphics[width=0.48\textwidth]{figures/pred_serie_2.png}
+    \caption{Predicción del mejor modelo LSTM contra el valor real en el conjunto de prueba: Total mensual (izquierda) y Frontera 01 La Aurora (derecha).}
+    \label{fig:lstm-predicciones}
+\end{figure}
+
+\input{tables/lstm_mejores.tex}
+
+\subsubsection{¿Cuál predijo mejor y es mejor que el Laboratorio 1?}
+
+\input{tables/lstm_vs_laboratorio1.tex}
+
+La Tabla~\ref{tab:lstm-vs-lab1} compara, sobre el mismo conjunto de prueba, el mejor LSTM de
+cada serie contra el mejor modelo clásico del Laboratorio 1. En \textbf{Total mensual}, LSTM
+obtuvo RMSE=50\,794 frente a 146\,606 de Holt-Winters multiplicativo (una reducción de
+65.4\,\%); en \textbf{Frontera 01 La Aurora}, LSTM obtuvo RMSE=19\,295 frente a 27\,986 del
+mejor ARIMA estacional (una reducción de 31.1\,\%). En ambos casos LSTM generalizó mejor sobre
+el mismo horizonte de prueba, que cubre precisamente la recuperación pospandemia -- el tramo
+más difícil de pronosticar para los modelos del Laboratorio 1 (Sección~\ref{sec:via-maritima} y
+siguientes). Entre las dos series, \textbf{Total mensual} tuvo el MAPE de prueba más bajo
+(18.05\,\% frente a 18.82\,\% en La Aurora), aunque la diferencia es pequeña y ambas series
+quedan en un rango de error relativo similar. El criterio usado para decidir ``mejor modelo'' en
+todos los casos fue el mismo del Laboratorio 1: menor RMSE de prueba, con MAE y MAPE como
+evidencia secundaria, y sin usar nunca el conjunto de prueba durante el tuneo de hiperparámetros.
+
+\subsection{Similitud de series con catch22 (Ejercicio 2)}
+
+\subsubsection{Idea detrás de catch22}
+
+catch22 (Lubba et al., 2019, sobre la base de Fulcher, Little y Jones, 2013) parte de que existen miles de formas de caracterizar
+estadísticamente una serie de tiempo (autocorrelación, entropía, no linealidad, distribución
+de valores, estructura estacional, etc.), pero muchas de ellas están correlacionadas entre sí
+y aportan información redundante. Su equipo evaluó miles de características de la librería
+\texttt{hctsa} sobre miles de series reales y sintéticas, y seleccionó las
+\textbf{22 características} que, en conjunto, maximizan el poder de discriminación entre
+series con la menor redundancia posible entre ellas, además de ser rápidas de calcular. Es
+importante porque permite resumir una serie completa en un vector corto de 22 números
+comparable entre series de distinta longitud o escala, sin necesidad de alinearlas en el
+tiempo.
+
+\subsubsection{Extracción, matriz y estandarización}
+
+Se extrajeron las 22 características de catch22 para las siete series del Laboratorio 1,
+usando en cada caso únicamente sus observaciones válidas: las seis series con historia
+completa (2009-2026) y \textbf{Vía Marítima}, que solo tiene observaciones reales entre 2009 y
+2016 (dejó de reportarse desde 2017, como se documentó en la Sección~\ref{sec:via-maritima}) y
+cuyas características se calcularon exclusivamente sobre ese tramo válido. La matriz resultante
+(7 series $\times$ 22 características) se estandarizó (media 0, desviación 1 por columna) antes
+de cualquier análisis comparativo.
+
+\subsubsection{PCA, clustering, heatmap, correlación y distancias}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figures/catch22_pca.png}
+    \caption{PCA sobre las características catch22 estandarizadas de las siete series.}
+    \label{fig:catch22-pca}
+\end{figure}
+
+Las dos primeras componentes principales explican el 80.6\,\% de la varianza total. La
+Figura~\ref{fig:catch22-pca} ya deja ver, antes de cualquier clustering formal, dos pares de
+puntos casi superpuestos (Frontera 01 La Aurora con Vía Aérea, y Frontera 07 Valle Nuevo con
+Vía Terrestre) y a Vía Marítima claramente aislada del resto.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/catch22_dendrograma.png}
+    \caption{Clustering jerárquico (Ward) sobre las características catch22 estandarizadas.}
+    \label{fig:catch22-dendrograma}
+\end{figure}
+
+\input{tables/catch22_clusters.tex}
+
+El corte estadísticamente óptimo según el coeficiente de silueta fue $k=2$ (silueta=0.466),
+que separa a Vía Marítima de las otras seis series, pero no distingue nada más entre ellas.
+Cortando el mismo dendrograma en $k=3$ (silueta=0.388, ligeramente menor pero mucho más
+interpretable) aparece una estructura más rica: \{Frontera 01 La Aurora, Vía Aérea\} (el par
+más similar de toda la matriz), \{Total mensual, Frontera 07 Valle Nuevo, Frontera 09 San
+Cristóbal, Vía Terrestre\}, y \{Vía Marítima\} sola.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.92\textwidth]{figures/catch22_heatmap.png}
+    \caption{Heatmap de las 22 características catch22 (estandarizadas) por serie.}
+    \label{fig:catch22-heatmap}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{figures/catch22_correlacion.png}
+    \caption{Correlación entre las 22 características catch22, calculada sobre las siete series.}
+    \label{fig:catch22-correlacion}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.65\textwidth]{figures/catch22_distancias.png}
+    \caption{Distancia euclidiana entre series en el espacio catch22 estandarizado.}
+    \label{fig:catch22-distancias}
+\end{figure}
+
+\input{tables/catch22_top_features.tex}
+
+\subsubsection{Preguntas de interpretación}
+
+\begin{itemize}
+    \item \textbf{2.7 Series más similares:} Frontera 01 La Aurora y Vía Aérea, con la menor distancia euclidiana de toda la matriz (0.27), consistente con que La Aurora concentra casi todo el tráfico aéreo del país.
+    \item \textbf{2.8 Características más discriminantes:} las de mayor peso combinado en PC1+PC2 fueron \texttt{DN\_\allowbreak HistogramMode\_5}, \texttt{PD\_\allowbreak PeriodicityWang\_\allowbreak th0\_01}, \texttt{SB\_\allowbreak MotifThree\_\allowbreak quantile\_hh}, \texttt{SC\_\allowbreak FluctAnal\_\allowbreak 2\_\allowbreak rsrangefit\_\allowbreak 50\_\allowbreak 1\_\allowbreak logi\_\allowbreak prop\_\allowbreak r1} e \texttt{IN\_\allowbreak AutoMutualInfoStats\_\allowbreak 40\_\allowbreak gaussian\_\allowbreak fmmi} (Tabla~\ref{tab:catch22-top-features}); casi todas relacionadas con la forma de la distribución de valores y con la estructura de autocorrelación/periodicidad.
+    \item \textbf{2.9 Grupos naturales:} sí existen -- ver el corte $k=3$ descrito arriba. El grupo \{La Aurora, Vía Aérea\} comparte un perfil ``dominado por un aeropuerto''; el grupo \{Total, Valle Nuevo, San Cristóbal, Vía Terrestre\} comparte un perfil más terrestre y heterogéneo en escala; Vía Marítima queda sola por su cobertura incompleta.
+    \item \textbf{2.10 Cohesión por categoría:} \textbf{no} es perfecta. Vía Aérea se agrupa con una frontera (La Aurora) y no con las otras dos vías, mientras que Vía Terrestre se agrupa con fronteras terrestres y con el total, no con Vía Aérea. Lo que domina el agrupamiento es la composición real del tráfico (aéreo vs. terrestre) y la escala, no la etiqueta de categoría bajo la cual se construyó la serie.
+    \item \textbf{2.11 Serie más atípica:} Vía Marítima, con la mayor distancia promedio respecto al resto (10.66), coherente con su cobertura temporal incompleta y su escala mucho menor.
+    \item \textbf{2.12 Consistencia con la Parte 3 del Laboratorio 1:} el agrupamiento catch22 es consistente con la fuerza de estacionalidad, la pendiente de tendencia y el coeficiente de variación de la Tabla~\ref{tab:comparacion-fronteras}/\ref{tab:comparacion-vias}: La Aurora y Vía Aérea comparten valores casi idénticos en las tres métricas (F$_s$=0.57, coeficiente de variación=0.31), y también en los estadísticos ADF de la Parte 1. La única dimensión que no ayuda a diferenciar los grupos es el impacto de la pandemia, porque fue severo de forma casi uniforme en todas las series con datos en ese período.
+    \item \textbf{2.13 Descubrimientos no evidentes en el análisis exploratorio tradicional:}
+    \begin{enumerate}
+        \item La similitud entre Vía Aérea y Frontera 01 La Aurora, ya intuida visualmente, queda confirmada aquí con una métrica de distancia explícita sobre 22 características estadísticas.
+        \item catch22 separa a Vía Marítima del resto principalmente por características de autocorrelación y distribución de valores, no solo por su menor volumen, lo que sugiere que su dinámica interna ya era distinta antes de que dejara de reportarse.
+        \item El agrupamiento por catch22 no respeta la separación administrativa entre ``frontera'' y ``vía'': la dinámica temporal de una serie está más determinada por su composición de tráfico que por el tipo de categoría bajo la cual fue construida.
+    \end{enumerate}
+\end{itemize}
+
+\subsubsection{2.14 -- LSTM con características catch22}
+
+Para aislar el efecto de agregar las características catch22 (sin confundirlo con un cambio de
+arquitectura), se construyó un modelo con el mismo backbone LSTM del mejor modelo del
+Ejercicio 1 para \textbf{Total mensual} (\texttt{look\_back=6}, 32 unidades, \textit{dropout}=0.1,
+\texttt{learning\_rate}=0.001), añadiendo una segunda entrada: el vector de 22 características
+catch22 calculado \textbf{únicamente con el conjunto de entrenamiento} (para no filtrar
+información del conjunto de prueba) y normalizado internamente sobre sus propios 22 valores.
+Ese vector pasa por una capa densa de 8 unidades que se concatena con la salida de la LSTM
+antes de la capa de salida.
+
+\input{tables/lstm_catch22_comparacion.tex}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figures/lstm_vs_lstm_catch22.png}
+    \caption{LSTM puro (Ejercicio 1) contra LSTM + catch22 (Ejercicio 2.14) -- Total mensual, conjunto de prueba.}
+    \label{fig:lstm-catch22}
+\end{figure}
+
+El RMSE de prueba \textbf{empeoró} 44.8\,\% al agregar catch22 (de 50\,794 a 73\,537), con una
+caída marcada de $R^2$ (de 0.543 a 0.043). La Figura~\ref{fig:lstm-catch22} muestra por qué:
+el modelo con catch22 subestima fuertemente el tramo inicial de recuperación pospandemia
+(2021-2022), llegando incluso a predecir valores negativos al principio del horizonte de
+prueba.
+
+La explicación es metodológica: para una única serie, el vector catch22 es una
+\textbf{constante} (no cambia entre observaciones de esa misma serie), por lo que la rama
+densa que lo procesa solo puede aportar un término de sesgo adicional a la red -- no aporta
+información temporal nueva dentro de la serie. La diferencia de desempeño frente al LSTM puro
+se explica entonces por la capacidad extra del modelo (una capa densa y una concatenación
+adicionales que el optimizador debe ajustar con los mismos datos de entrenamiento), no por un
+uso genuino de catch22 como señal predictiva; en este caso esa capacidad extra jugó en contra
+del modelo. El valor real de catch22 en un modelo de deep learning no está en enriquecer una
+LSTM entrenada sobre una sola serie, sino en escenarios donde el mismo modelo pronostica
+\textbf{varias series a la vez}: allí el vector catch22 sí varía de una serie a otra y podría
+actuar como un identificador de contexto (estacionalidad alta, dominada por un aeropuerto,
+etc.) que permita compartir capacidad entre series similares -- como Frontera 01 La Aurora y
+Vía Aérea, identificadas como las más parecidas en este mismo ejercicio -- sin entrenar un
+modelo independiente para cada una. Esa aplicación más ambiciosa queda fuera del alcance de
+este ejercicio, que compara un LSTM contra su versión aumentada sobre una sola serie.
+
 \end{document}
