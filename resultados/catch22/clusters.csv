@@ -1,0 +1,8 @@
+serie,cluster_jerarquico,cluster_kmeans,cluster_k2,cluster_k3,cluster_k4
+Total mensual,1,0,1,2,2
+Frontera 01 La Aurora,1,0,1,1,1
+Frontera 07 Valle Nuevo,1,0,1,2,2
+Frontera 09 San Cristóbal,1,0,1,2,3
+Vía Aérea,1,0,1,1,1
+Vía Terrestre,1,0,1,2,2
+Vía Marítima,2,1,2,3,4

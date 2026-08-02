@@ -15,3 +15,4 @@ jupyterlab>=4.0
 keras>=3.0
 torch>=2.0
 # TensorFlow no tiene ruedas para Python 3.14; usar Keras + backend Torch.
+pycatch22>=0.4.5

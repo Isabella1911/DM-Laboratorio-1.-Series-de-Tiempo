@@ -22,13 +22,16 @@ notebooks/
   01_eda_y_series.ipynb            EDA, series mensuales, split train/test, estacionariedad
   02_modelos_y_pronosticos.ipynb   ARIMA/SARIMA, Prophet, Holt-Winters, exp. smoothing, naive
   03_comparacion_final.ipynb       Comparacion estadistica, hallazgos INGUAT, exportacion
-  laboratorio_2_lstm.ipynb         Laboratorio 2: tuneo LSTM y prediccion (2 series)
+  laboratorio_2_lstm.ipynb         Laboratorio 2, Ejercicio 1: tuneo LSTM y prediccion (2 series)
+  laboratorio_2_catch22.ipynb      Laboratorio 2, Ejercicio 2: similitud de series con catch22
 src/
   lab.py                           Pipeline Parte 1 (carga, calidad, EDA, series, diagnostico)
   models.py                        Pipeline Parte 2 (modelos, diagnostico, pronosticos)
   comparacion.py                   Pipeline Parte 3 (comparacion, hallazgos, exportacion)
-  lstm_lab.py                      Pipeline Laboratorio 2 (LSTM + Keras/Torch)
+  lstm_lab.py                      Pipeline Laboratorio 2, Ejercicio 1 (LSTM + Keras/Torch)
+  catch22_lab.py                   Pipeline Laboratorio 2, Ejercicio 2 (catch22 + PCA/clustering)
 resultados/                        Metricas, predicciones e interpretaciones LSTM
+  catch22/                         Matriz de caracteristicas, PCA, clusters, distancias, interpretacion
 modelos/                           Mejores modelos `.keras` (ignorados en git)
 outputs/                           Generado localmente (no versionado, ver .gitignore)
   parte1/{tablas,series,figuras}, manifest.md
@@ -92,6 +95,19 @@ export KERAS_BACKEND=torch
 ```
 
 Salidas en `resultados/` y `modelos/`.
+
+### Laboratorio 2 (catch22)
+
+Requiere `outputs/parte1/series/` (las siete series del Laboratorio 1) y el paquete `pycatch22`:
+
+```bash
+./.venv/bin/pip install pycatch22
+./.venv/bin/python -m src.catch22_lab
+# o notebooks/laboratorio_2_catch22.ipynb
+```
+
+Salidas en `resultados/catch22/` (matriz de caracteristicas, PCA, clusters, correlacion,
+distancias, interpretaciones) y `resultados/figuras/catch22_*.png`.
 
 ## Compilar el informe
 
